@@ -8,7 +8,7 @@ import { TokenManagerMock } from "../mocks/TokenManagerMock"
 import { UserDatabaseMock } from "../mocks/UserDatabaseMock"
 
 
-describe("Testando getUsers", () => {
+describe("Testando getUsersById", () => {
   const userBusiness = new UserBusiness(
     new UserDatabaseMock(),
     new IdGeneratorMock(),
@@ -16,15 +16,16 @@ describe("Testando getUsers", () => {
     new HashManagerMock()
   )
 
-  test("deve retornar uma lista de users", async () => {
+  test("deve retornar um user pelo seu id  ", async () => {
     const input = GetUsersSchema.parse({
+        q:"id-mock-astrodev",
       token: "token-mock-astrodev"
     })
 
-    const output = await userBusiness.getUsers(input)
+    const output = await userBusiness.getUserById(input)
 
-    expect(output).toHaveLength(2)
-    expect(output).toContainEqual({
+    
+    expect(output).toEqual({
       id: "id-mock-astrodev",
       name: "Astrodev",
       email: "astrodev@email.com",

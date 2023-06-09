@@ -1,10 +1,11 @@
 import { UserDatabase } from "../database/UserDatabase"
+import { DeleteUserDTO, DeleteUserOutputDTO } from "../dtos/user/deleteUser.dto"
 import { GetUsersInputDTO, GetUsersOutputDTO } from "../dtos/user/getUsers.dto"
 import { LoginInputDTO, LoginOutputDTO } from "../dtos/user/login.dto"
 import { SignupInputDTO, SignupOutputDTO } from "../dtos/user/signup.dto"
 import { BadRequestError } from "../errors/BadRequestError"
 import { NotFoundError } from "../errors/NotFoundError"
-import { TokenPayload, USER_ROLES, User } from "../models/User"
+import { TokenPayload, USER_ROLES, User, UserDB } from "../models/User"
 import { HashManager } from "../services/HashManager"
 import { IdGenerator } from "../services/IdGenerator"
 import { TokenManager } from "../services/TokenManager"
@@ -131,4 +132,73 @@ export class UserBusiness {
 
     return output
   }
+
+  // delete user by id 
+  public deleteUser = async (
+    input:DeleteUserDTO
+  ): Promise<DeleteUserOutputDTO> => {
+    const {  q , token } = input
+    
+    const payload = this.tokenManager.getPayload(token)
+
+    if (payload === null) {
+        throw new BadRequestError("token inválido")
+    } 
+
+    if (payload.role !== USER_ROLES.ADMIN) {
+      throw new BadRequestError("somente admins podem acessar")
+    }
+    const usersDB = await this.userDatabase.findUserById(q)
+
+    if(!usersDB){
+      throw new BadRequestError("'id' incorreto ou usuário não existe.")
+      
+    }
+    await this.userDatabase.deleteUserById(q)
+
+    const output: DeleteUserOutputDTO = {
+    message:"Usuário deletado com sucesso!"
+    }
+
+    return output
+  }
+
+  // retorna uma user
+  public getUserById = async (
+    input: GetUsersInputDTO
+  ): Promise<GetUsersOutputDTO | undefined > => {
+    const { q, token } = input
+
+    const payload = this.tokenManager.getPayload(token)
+
+    if (payload === null) {
+        throw new BadRequestError("token inválido")
+    } 
+
+    if (payload.role !== USER_ROLES.ADMIN) {
+      throw new BadRequestError("somente admins podem acessar")
+    }
+
+    const usersDB = await this.userDatabase.findUserById(q)
+    if(!usersDB){
+      throw new BadRequestError("id invalído")
+
+    }
+    
+      const user = new User(
+        usersDB.id,
+        usersDB.name,
+        usersDB.email,
+        usersDB.password,
+        usersDB.role,
+        usersDB.created_at
+      )
+
+    
+    
+
+    const output = user.toBusinessModel()
+    return output as any
+  }
+
 }

@@ -1,4 +1,4 @@
-import { USER_ROLES, UserDB } from "../../src/models/User";
+import { USER_ROLES, UserDB, UserModel } from "../../src/models/User";
 import { BaseDatabase } from "../../src/database/BaseDatabase";
 
 const usersMock: UserDB[] = [
@@ -53,4 +53,9 @@ export class UserDatabaseMock extends BaseDatabase {
   ): Promise<void> {
 
   }
+  public async deleteUserById(id:string): Promise<void>{
+      usersMock.filter(user => user.id !== id)   
+    
+    }
+ 
 }
